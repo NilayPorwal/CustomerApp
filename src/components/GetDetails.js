@@ -1,11 +1,11 @@
 import React from 'react';
-import { TextInput, ScrollView, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import { TextInput, ScrollView, Text, StyleSheet, TouchableOpacity, Keyboard} from 'react-native';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as acts from '../actions/actions';
 
 let styles;
-class CustomerDetails extends React.Component {
+class GetDetails extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -35,6 +35,15 @@ class CustomerDetails extends React.Component {
           formIsValid = false;
           errors["title"] = "*Please enter Title";
         }
+        if (details.cellTele == null) {
+          formIsValid = false;
+          errors["cellTele"] = "*Please enter Cell Number";
+        }
+
+        if (details.cellTele != null && !details.cellTele.match(/^[0-9]{10}$/)) {
+          formIsValid = false;
+          errors["cellTele"] = "*Please enter a valid Cell Number";
+        }
 
         let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
         if(details.email != null && reg.test(details.email) === false){
@@ -48,14 +57,17 @@ class CustomerDetails extends React.Component {
    }
 
    onSubmit(){
+    Keyboard.dismiss()
        if(this._validateForm()){
-        this.props.actions.insertData(this.state.details)
+         this.props.actions.insertData(this.state.details)
+         this.setState({details:{}, errors:{}})
+         this.props.navigation.push("Show Details")
        }
    }
 
     render() {
         return (
-            <ScrollView style={styles.container}>
+            <ScrollView style={styles.container} keyboardShouldPersistTaps="always">
               <TextInput
                   style={styles.input}
                   placeholder="Name"
@@ -115,6 +127,7 @@ class CustomerDetails extends React.Component {
                   onChangeText={(text) => this.onChange("cellTele", text)}
                   keyboardType="numeric"
                 />
+                <Text style={styles.error}>{this.state.errors.cellTele}</Text>
                  <TextInput
                   style={styles.input}
                   placeholder="Email"
@@ -155,7 +168,7 @@ styles = StyleSheet.create({
 
 function mapStateToProps(state) {
     return {
-        data: state.dataReducer
+        data: state.SQLiteReducer
     }
 }
 
@@ -168,4 +181,4 @@ function mapDispatchToProps(dispatch) {
 export default connect(
     mapStateToProps,
     mapDispatchToProps
-)(CustomerDetails)
+)(GetDetails)
